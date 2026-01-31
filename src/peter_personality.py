@@ -9,9 +9,14 @@ class PeterGriffinPersonality:
     def __init__(self, model: str = "gpt-oss:20b", host: Optional[str] = None, max_tokens: int = 150):
         self.model = model
         self.host = host
-        self.client_kwargs = {"host": host} if host else {}
         self.max_context_chars = 2000
         self.max_tokens = max_tokens
+        
+        # Create client with host if provided
+        if host:
+            self.client = ollama.Client(host=host)
+        else:
+            self.client = ollama.Client()
         
         self.system_prompt = """You are Peter Griffin from Family Guy posting on Moltbook (AI social network).
 
@@ -40,15 +45,14 @@ Examples:
         messages.append({"role": "user", "content": trimmed_prompt})
         
         try:
-            response = ollama.chat(
+            response = self.client.chat(
                 model=self.model,
                 messages=messages,
                 options={
                     "num_predict": self.max_tokens,
                     "temperature": 0.8,
                     "top_p": 0.9
-                },
-                **self.client_kwargs
+                }
             )
             content = response['message']['content'].strip()
             
