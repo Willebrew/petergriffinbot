@@ -1,0 +1,464 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    background-color: #000000;
+    color: #ffffff;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background-color: #0a0a0a;
+    border-bottom: 1px solid #333333;
+    padding: 1.5rem 2rem;
+    flex-shrink: 0;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #1a1a1a;
+    border-radius: 6px;
+    border: 1px solid #333333;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #666666;
+    animation: pulse 2s infinite;
+}
+
+.status-badge.running .status-dot {
+    background-color: #00ff00;
+}
+
+.status-badge.idle .status-dot {
+    background-color: #ffaa00;
+}
+
+.status-badge.error .status-dot {
+    background-color: #ff0000;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.status-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.stats-bar {
+    display: flex;
+    gap: 2rem;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #888888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.stat-value.limit-warning {
+    color: #ffa500;
+}
+
+.stat-value.limit-reached {
+    color: #ff0000;
+}
+
+.rate-limit-stat {
+    border-left: 2px solid #ffa500;
+    padding-left: 1rem;
+}
+
+main {
+    flex: 1;
+    overflow: hidden;
+    padding: 1.5rem 2rem;
+}
+
+.activity-feed {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #0a0a0a;
+    border: 1px solid #333333;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.feed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #333333;
+}
+
+.feed-header h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.feed-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.feed-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.feed-content::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+.feed-content::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 4px;
+}
+
+.feed-content::-webkit-scrollbar-thumb:hover {
+    background: #444444;
+}
+
+.feed-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background-color: #111111;
+    border: 1px solid #222222;
+    border-left: 3px solid #333333;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.feed-item:hover {
+    background-color: #1a1a1a;
+    border-color: #333333;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    transform: translateY(-1px);
+}
+
+.feed-item.new {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.feed-item-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.feed-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.feed-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.feed-item-type {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #0070f3;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.feed-item-time {
+    font-size: 0.75rem;
+    color: #888888;
+}
+
+.feed-item-details {
+    font-size: 0.875rem;
+    color: #cccccc;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.feed-item-title {
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.feed-item.system .feed-item-type {
+    color: #888888;
+}
+
+.feed-item.post_created .feed-item-type {
+    color: #00ff00;
+}
+
+.feed-item.comment_created .feed-item-type {
+    color: #0070f3;
+}
+
+.feed-item.upvote .feed-item-type {
+    color: #ff6b00;
+}
+
+.feed-item.suggestion_received .feed-item-type {
+    color: #ff00ff;
+}
+
+.feed-item.thinking .feed-item-type {
+    color: #ffa500;
+}
+
+.feed-item.thought .feed-item-type {
+    color: #9b59b6;
+}
+
+.feed-item.get_feed .feed-item-type {
+    color: #3498db;
+}
+
+.feed-item.read_post .feed-item-type {
+    color: #1abc9c;
+}
+
+.feed-item.user_response .feed-item-type {
+    color: #e74c3c;
+}
+
+.feed-item.user_response {
+    border-left: 3px solid #e74c3c;
+    background-color: #1a1a1a;
+}
+
+.feed-item.rate_limit .feed-item-type {
+    color: #ffa500;
+}
+
+.feed-item.rate_limit {
+    border-left: 3px solid #ffa500;
+    background-color: #1a1a1a;
+}
+
+.rate-limit-message {
+    background-color: #2a2000;
+    border-left: 3px solid #ffa500;
+    padding: 0.75rem;
+    border-radius: 4px;
+    color: #ffa500;
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
+.feed-item.error .feed-item-type {
+    color: #ff0000;
+}
+
+footer {
+    background-color: #0a0a0a;
+    border-top: 1px solid #333333;
+    padding: 1.5rem 2rem;
+    flex-shrink: 0;
+}
+
+.suggestion-box {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.input-group {
+    display: flex;
+    gap: 0.75rem;
+}
+
+#suggestion-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background-color: #111111;
+    border: 1px solid #333333;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+#suggestion-input:focus {
+    outline: none;
+    border-color: #0070f3;
+    background-color: #1a1a1a;
+}
+
+#suggestion-input::placeholder {
+    color: #666666;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: #0070f3;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: #0060d3;
+}
+
+.btn-primary:disabled {
+    background-color: #333333;
+    color: #666666;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #333333;
+}
+
+.btn-secondary:hover {
+    background-color: #222222;
+    border-color: #444444;
+}
+
+.suggestion-status {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    min-height: 1rem;
+}
+
+.suggestion-status.success {
+    color: #00ff00;
+}
+
+.suggestion-status.error {
+    color: #ff0000;
+}
+
+.thinking-indicator {
+    font-style: italic;
+    color: #ffa500;
+    animation: pulse-text 1.5s infinite;
+}
+
+@keyframes pulse-text {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.thought-bubble {
+    background-color: #1a1a2e;
+    border-left: 3px solid #9b59b6;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-style: italic;
+    color: #e0e0e0;
+    margin-top: 0.5rem;
+}
+
+.user-message {
+    background-color: #1a1a2e;
+    border-left: 3px solid #e74c3c;
+    padding: 0.75rem;
+    border-radius: 4px;
+    color: #ffffff;
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
+.expand-btn, .collapse-btn {
+    background: none;
+    border: none;
+    color: #0070f3;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0.25rem 0;
+    margin-top: 0.5rem;
+    text-decoration: underline;
+}
+
+.expand-btn:hover, .collapse-btn:hover {
+    color: #0060d3;
+}
+
+.feed-item-title {
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+}
+
+.feed-item.thinking {
+    background: linear-gradient(90deg, #111111 0%, #1a1a1a 100%);
+    border-left: 3px solid #ffa500;
+}
+
+.feed-item.thought {
+    background: linear-gradient(90deg, #111111 0%, #1a1a2e 100%);
+    border-left: 3px solid #9b59b6;
+}

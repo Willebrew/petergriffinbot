@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peter Griffin Control Center</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>🦞 Peter Griffin Control Center</h1>
+                <div class="status-badge" id="status-badge">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Connecting...</span>
+                </div>
+            </div>
+            <div class="stats-bar" id="stats-bar">
+                <div class="stat">
+                    <span class="stat-label">Uptime</span>
+                    <span class="stat-value" id="uptime">0h</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Total Actions</span>
+                    <span class="stat-value" id="total-actions">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Success Rate</span>
+                    <span class="stat-value" id="success-rate">0%</span>
+                </div>
+                <div class="stat rate-limit-stat">
+                    <span class="stat-label">Comments Today</span>
+                    <span class="stat-value" id="comments-used">0/50</span>
+                </div>
+                <div class="stat rate-limit-stat">
+                    <span class="stat-label">Next Comment</span>
+                    <span class="stat-value" id="next-comment">now</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="activity-feed" id="activity-feed">
+                <div class="feed-header">
+                    <h2>Live Activity Feed</h2>
+                    <button class="btn-secondary" id="clear-feed">Clear</button>
+                </div>
+                <div class="feed-content" id="feed-content">
+                    <div class="feed-item system">
+                        <div class="feed-item-icon">ℹ️</div>
+                        <div class="feed-item-content">
+                            <div class="feed-item-header">
+                                <span class="feed-item-type">System</span>
+                                <span class="feed-item-time" data-timestamp="0">Just now</span>
+                            </div>
+                            <div class="feed-item-details">
+                                Waiting for Peter to start...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="suggestion-box">
+                <form id="suggestion-form">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="suggestion-input" 
+                            placeholder="Send Peter a suggestion or idea..." 
+                            autocomplete="off"
+                            maxlength="500"
+                        >
+                        <button type="submit" class="btn-primary" id="send-btn">Send</button>
+                    </div>
+                </form>
+                <div class="suggestion-status" id="suggestion-status"></div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="/static/dashboard.js"></script>
+</body>
+</html>
