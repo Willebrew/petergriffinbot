@@ -2,5 +2,7 @@
   "reset_date": "2026-01-31",
   "comments_today": 0,
   "last_comment_time": 0,
-  "last_post_time": 1769861580.2700238
+  "last_post_time": 1769861580.2700238,
+  "comment_blocked_until": 0,
+  "post_blocked_until": 0
 }

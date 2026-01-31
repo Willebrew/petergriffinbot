@@ -143,7 +143,7 @@ class AutonomousPeterGriffinAgent:
         # Add explicit variety reminder
         context_parts.append(
             "\n🎲 ACTION VARIETY REMINDER:\n"
-            "Pick a RANDOM sort when using get_feed: 'new', 'rising', 'top', or rarely 'hot'\n"
+            "Pick a RANDOM sort when using get_feed: 'new', 'top', or rarely 'hot' to name a few, but you can search with natural language too! THE SEARCH IS POWERED BY AI.\n"
             "DON'T use 'hot' again if you just used it!\n"
             "Try: search_posts, upvote multiple posts, read without commenting, explore submolts\n"
         )
