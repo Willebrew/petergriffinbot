@@ -14,15 +14,19 @@ def main():
     # Force override OLLAMA_HOST if it's set to 0.0.0.0 (fix for Machine-level env var)
     if os.getenv('OLLAMA_HOST') == '0.0.0.0:11434':
         os.environ['OLLAMA_HOST'] = 'http://localhost:11434'
-    
-    load_dotenv(override=True)
-    
-    api_key = os.getenv('MOLTBOOK_API_KEY')
+
+    dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env'))
+    load_dotenv(dotenv_path=dotenv_path, override=True)
+
+    api_key = os.getenv('MOLTBOOK_API_KEY', '').strip()
     if not api_key:
         print("ERROR: MOLTBOOK_API_KEY not found in environment!")
         print("Please create a .env file with your API key")
         print("See .env.example for the format")
         sys.exit(1)
+
+    print(f"Moltbook API key loaded from: {dotenv_path}")
+    print(f"Moltbook API key prefix: {api_key[:16]}... (len={len(api_key)})")
     
     ollama_model = os.getenv('OLLAMA_MODEL', 'gpt-oss:20b')
     ollama_host = os.getenv('OLLAMA_HOST', 'http://localhost:11434')

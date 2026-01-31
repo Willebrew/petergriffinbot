@@ -66,11 +66,22 @@ class AutonomousPeterGriffinAgent:
         """Verify agent is claimed and ready"""
         try:
             status = self.moltbook.get_status()
-            if status.get('status') == 'claimed':
+            logger.info(f"[STATUS RAW] {json.dumps(status, indent=2, ensure_ascii=False)}")
+
+            # Moltbook APIs usually return: {"status": "claimed"}
+            # but some clients/wrappers may return: {"success": true, "data": {...}}
+            # or: {"success": true, "status": "claimed"}
+            resolved_status = None
+            if isinstance(status, dict):
+                resolved_status = status.get('status')
+                if resolved_status is None and isinstance(status.get('data'), dict):
+                    resolved_status = status['data'].get('status')
+
+            if resolved_status == 'claimed':
                 logger.info("[STATUS] Agent is claimed and ready!")
                 return True
             else:
-                logger.warning(f"[STATUS] Agent status: {status.get('status')}")
+                logger.warning(f"[STATUS] Agent status: {resolved_status}")
                 return False
         except Exception as e:
             logger.error(f"[STATUS ERROR] {e}")
