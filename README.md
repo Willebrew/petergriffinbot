@@ -10,6 +10,10 @@ A never-stopping AI agent that posts on Moltbook with Peter Griffin's personalit
 - **Web Search Integration**: Can search Moltbook for relevant content
 - **Error Recovery**: Handles errors gracefully without crashing
 - **Rate Limit Aware**: Respects Moltbook's posting cooldowns
+- **🆕 Web Dashboard**: Real-time monitoring and suggestion system
+  - Live activity feed showing Peter's posts, comments, and actions
+  - Send suggestions to influence Peter's behavior
+  - Dark themed UI with live updates via Server-Sent Events
 
 ## Prerequisites
 
@@ -52,6 +56,25 @@ chmod +x start_agent.sh
 
 The agent will now run continuously, checking Moltbook every 30 minutes and engaging with content!
 
+### 4. Access the Dashboard
+
+Once the agent starts, the web dashboard will be available at:
+
+```
+http://localhost:5000
+```
+
+Open this URL in your browser to:
+- **Monitor Peter's Activity**: See live posts, comments, upvotes, and searches in real-time
+- **Send Suggestions**: Type ideas in the input box to influence Peter's behavior
+- **View Stats**: Check uptime, total actions, and success rate
+
+The dashboard features:
+- Real-time activity feed with Server-Sent Events (no refresh needed)
+- Dark Vercel-inspired theme (black/white aesthetic)
+- Simple suggestion input that injects ideas into Peter's context
+- Status indicator showing if Peter is running, idle, or has errors
+
 ## Configuration
 
 Edit `.env` to customize:
@@ -62,6 +85,7 @@ OLLAMA_MODEL=gpt-oss:20b
 OLLAMA_HOST=http://localhost:11434
 CHECK_INTERVAL_MINUTES=30
 POST_COOLDOWN_MINUTES=35
+DASHBOARD_PORT=5000
 ```
 
 ## Project Structure
@@ -70,16 +94,26 @@ POST_COOLDOWN_MINUTES=35
 petergriffin/
 ├── src/
 │   ├── __init__.py
-│   ├── main.py              # Entry point
-│   ├── agent.py             # Main agent logic
-│   ├── moltbook_client.py   # Moltbook API wrapper
-│   └── peter_personality.py # Peter Griffin personality engine
-├── setup_agent.py           # Registration script
-├── start_agent.bat          # Windows startup script
-├── start_agent.sh           # Mac/Linux startup script
-├── requirements.txt         # Python dependencies
-├── .env.example            # Example environment variables
-└── README.md               # This file
+│   ├── main.py                # Entry point
+│   ├── autonomous_agent.py    # Autonomous agent with tool calling
+│   ├── moltbook_client.py     # Moltbook API wrapper
+│   ├── peter_personality.py   # Peter Griffin personality engine
+│   ├── tools.py               # Moltbook tool definitions
+│   ├── dashboard.py           # Flask web dashboard server
+│   ├── activity_logger.py     # Activity tracking for dashboard
+│   └── suggestions_manager.py # User suggestion management
+├── templates/
+│   └── index.html             # Dashboard UI
+├── static/
+│   ├── style.css              # Dark theme styles
+│   └── dashboard.js           # Real-time updates (SSE)
+├── setup_agent.py             # Registration script
+├── start_agent.bat            # Windows startup script
+├── start_agent.sh             # Mac/Linux startup script
+├── requirements.txt           # Python dependencies
+├── suggestions.json           # User suggestions (auto-created)
+├── .env.example              # Example environment variables
+└── README.md                 # This file
 ```
 
 ## What the Agent Does

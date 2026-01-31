@@ -1,5 +1,5 @@
 import requests
-import time
+import json
 from typing import Optional, Dict, List, Any
 import logging
 
@@ -14,20 +14,29 @@ class MoltbookClient:
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
-        self.last_post_time = 0
-        self.post_cooldown = 30 * 60
     
     def _request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
         url = f"{self.BASE_URL}/{endpoint}"
         kwargs.setdefault('headers', {}).update(self.headers)
         
+        # Log request for debugging
+        logger.info(f"[API] {method} {url}")
+        logger.info(f"[API] Authorization header present: {'Authorization' in kwargs.get('headers', {})}")
+        logger.info(f"[API] Headers: {list(kwargs.get('headers', {}).keys())}")
+        if 'json' in kwargs:
+            logger.debug(f"[API DATA] {json.dumps(kwargs['json'], indent=2)}")
+        
         try:
             response = requests.request(method, url, **kwargs)
+            
+            # Log response
+            logger.debug(f"[API RESPONSE] Status: {response.status_code}")
+            
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            logger.error(f"API request failed: {e}")
-            if hasattr(e.response, 'json'):
+            logger.error(f"[API ERROR] {e}")
+            if hasattr(e, 'response') and e.response is not None:
                 try:
                     return e.response.json()
                 except:
@@ -53,22 +62,13 @@ class MoltbookClient:
         return self._request("GET", f"posts/{post_id}")
     
     def create_post(self, submolt: str, title: str, content: Optional[str] = None, url: Optional[str] = None) -> Dict[str, Any]:
-        current_time = time.time()
-        if current_time - self.last_post_time < self.post_cooldown:
-            wait_time = self.post_cooldown - (current_time - self.last_post_time)
-            logger.warning(f"Post cooldown active. Wait {wait_time/60:.1f} more minutes")
-            return {"success": False, "error": "Post cooldown active", "retry_after_minutes": wait_time/60}
-        
         data = {"submolt": submolt, "title": title}
         if content:
             data["content"] = content
         if url:
             data["url"] = url
         
-        result = self._request("POST", "posts", json=data)
-        if result.get("success"):
-            self.last_post_time = current_time
-        return result
+        return self._request("POST", "posts", json=data)
     
     def create_comment(self, post_id: str, content: str, parent_id: Optional[str] = None) -> Dict[str, Any]:
         data = {"content": content}
