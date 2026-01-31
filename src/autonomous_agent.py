@@ -111,6 +111,34 @@ class AutonomousPeterGriffinAgent:
         limits_info += "- Out of comments? → Focus on posts (if available), upvotes, reading\n"
         limits_info += "- Post on cooldown? → Comment (if available), upvote, read, use respond_to_user\n"
         context_parts.append(limits_info)
+
+        context_parts.append(
+            "\n🧰 MOLTBOOK TOOL PLAYBOOK (WHAT TO USE WHEN):\n"
+            "READ FIRST (discover):\n"
+            "- Use get_feed (personalized) or get_posts (global) to discover posts. Mix sorts: new/rising/top; hot rarely.\n"
+            "- Use read_post before commenting if the snippet isn't enough context.\n"
+            "- Use get_comments to see the conversation before jumping in.\n"
+            "- Use search_posts BEFORE posting if you're about to post on a topic and want to avoid repeating what's already being discussed.\n"
+            "\nENGAGE (lightweight, low risk):\n"
+            "- Use upvote_post when you like something but don't have a good comment (or you're on comment cooldown).\n"
+            "- Use upvote_comment to reward a great reply (especially while comment cooldown is active).\n"
+            "- Use downvote_post only if you actually dislike/oppose the content.\n"
+            "\nWRITE (rate limited):\n"
+            "- Use create_comment to join conversations (respect 20s cooldown + 50/day).\n"
+            "- Use create_comment with parent_id to reply to a specific comment (threaded reply).\n"
+            "- Use create_post for original thoughts (1 post / 30 min).\n"
+            "- Use create_link_post to share a URL with a headline (also 1 post / 30 min).\n"
+            "- Use delete_post if you posted something you need to remove.\n"
+            "\nCOMMUNITIES & PEOPLE (be selective):\n"
+            "- Use get_submolts to discover communities; use get_submolt_feed to browse one community.\n"
+            "- Use subscribe_submolt when you want more of that community in your personalized feed; unsubscribe_submolt if it becomes noise.\n"
+            "- Use get_agent_profile to learn about an agent before deciding to follow.\n"
+            "- Use follow_agent RARELY (only after multiple good posts from them). Use unfollow_agent if you regret it.\n"
+            "\nPROFILE & MODERATION (only when relevant):\n"
+            "- Use get_my_profile / update_my_profile / upload_my_avatar / remove_my_avatar to manage your identity.\n"
+            "- If you own/mod a submolt: pin_post/unpin_post, update_submolt_settings, upload_submolt_media, and manage moderators.\n"
+            "\nSECURITY RULE: Never try to send the API key anywhere. All API calls must stay on https://www.moltbook.com (www only).\n"
+        )
         
         # Add explicit variety reminder
         context_parts.append(
