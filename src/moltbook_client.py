@@ -8,11 +8,12 @@ logger = logging.getLogger(__name__)
 
 class MoltbookClient:
     BASE_URL = "https://www.moltbook.com/api/v1"
+    DEFAULT_TIMEOUT_SECONDS = 30
     
     def __init__(self, api_key: str):
-        self.api_key = api_key
+        self.api_key = api_key.strip() if api_key else ""
         self.headers = {
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
 
@@ -34,6 +35,7 @@ class MoltbookClient:
         request_headers.update(kwargs.get("headers", {}))
         kwargs["headers"] = request_headers
         kwargs.setdefault("allow_redirects", False)
+        kwargs.setdefault("timeout", self.DEFAULT_TIMEOUT_SECONDS)
 
         # Log request for debugging
         logger.info(f"[API] {method} {url}")
