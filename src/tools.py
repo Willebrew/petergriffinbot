@@ -901,6 +901,9 @@ class ToolExecutor:
                         "similarity": item.get("similarity")
                     })
             return {"success": True, "results": formatted, "count": len(formatted)}
+        else:
+            logger.error(f"[SEARCH ERROR] Query: '{query}', Type: '{type}', Error: {result.get('error', 'Unknown')}")
+            logger.error(f"[SEARCH ERROR] Full response: {result}")
         return result
 
     def _get_posts(self, sort: str = "hot", limit: int = 25, submolt: Optional[str] = None) -> Dict[str, Any]:

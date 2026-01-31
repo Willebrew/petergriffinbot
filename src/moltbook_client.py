@@ -10,9 +10,9 @@ class MoltbookClient:
     BASE_URL = "https://www.moltbook.com/api/v1"
     
     def __init__(self, api_key: str):
-        self.api_key = api_key
+        self.api_key = api_key.strip() if api_key else ""
         self.headers = {
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
 
