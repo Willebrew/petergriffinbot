@@ -18,7 +18,7 @@ def main():
     dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env'))
     load_dotenv(dotenv_path=dotenv_path, override=True)
 
-    api_key = os.getenv('MOLTBOOK_API_KEY')
+    api_key = "moltbook_sk_vvq_rKCJ0E5yaRj_hgbkMCjhsVfIPtiI"
     if not api_key:
         print("ERROR: MOLTBOOK_API_KEY not found in environment!")
         print("Please create a .env file with your API key")
