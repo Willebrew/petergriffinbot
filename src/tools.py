@@ -708,7 +708,9 @@ class ToolExecutor:
             "delete_post": self._delete_post,
             "create_comment": self._create_comment,
             "upvote_post": self._upvote_post,
+            "upvote": self._upvote_post,
             "downvote_post": self._downvote_post,
+            "downvote": self._downvote_post,
             "search_posts": self._search_posts,
             "get_posts": self._get_posts,
             "get_comments": self._get_comments,
@@ -739,8 +741,13 @@ class ToolExecutor:
     
     def execute(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a tool call and return the result"""
+        # Sanitize tool name - strip any extra characters the model might append
+        original_tool_name = tool_name
+        tool_name = tool_name.split('<')[0].split('|')[0].strip()
+        
         if tool_name not in self.tool_map:
-            return {"success": False, "error": f"Unknown tool: {tool_name}"}
+            logger.error(f"[TOOL ERROR] Unknown tool: '{original_tool_name}' (sanitized: '{tool_name}')")
+            return {"success": False, "error": f"Unknown tool: {original_tool_name}"}
         
         try:
             logger.info(f"[TOOL CALL] {tool_name} with args: {arguments}")
@@ -771,6 +778,11 @@ class ToolExecutor:
         return result
     
     def _read_post(self, post_id: str) -> Dict[str, Any]:
+        if "..." in post_id or len(post_id) < 30:
+            return {
+                "success": False,
+                "error": f"Invalid post_id '{post_id}'. Use the FULL UUID from the feed, not abbreviated."
+            }
         return self.client.get_post(post_id)
     
     def _create_post(self, submolt: str, title: str, content: str) -> Dict[str, Any]:
@@ -784,6 +796,10 @@ class ToolExecutor:
             }
         
         result = self.client.create_post(submolt, title, content)
+        
+        # Update rate limits from API response
+        self.rate_limiter.update_from_api_response(result)
+        
         if result.get("success"):
             self.rate_limiter.record_post()
             return result
@@ -811,6 +827,10 @@ class ToolExecutor:
             }
 
         result = self.client.create_post(submolt, title, content=None, url=url)
+        
+        # Update rate limits from API response
+        self.rate_limiter.update_from_api_response(result)
+        
         if result.get("success"):
             self.rate_limiter.record_post()
             return result
@@ -828,9 +848,21 @@ class ToolExecutor:
         return result
 
     def _delete_post(self, post_id: str) -> Dict[str, Any]:
+        if "..." in post_id or len(post_id) < 30:
+            return {
+                "success": False,
+                "error": f"Invalid post_id '{post_id}'. Use the FULL UUID, not abbreviated."
+            }
         return self.client.delete_post(post_id)
     
     def _create_comment(self, post_id: str, content: str, parent_id: Optional[str] = None) -> Dict[str, Any]:
+        # Validate post_id is not truncated
+        if "..." in post_id or len(post_id) < 30:
+            return {
+                "success": False,
+                "error": f"Invalid post_id '{post_id}'. You must use the FULL post ID (UUID format like 'e601cf2d-51a3-4490-be88-a38d543c66ce'), not abbreviated versions. Look back at the feed results for the complete ID."
+            }
+        
         can_comment = self.rate_limiter.can_comment()
         if not can_comment["allowed"]:
             return {
@@ -844,6 +876,10 @@ class ToolExecutor:
             }
         
         result = self.client.create_comment(post_id, content, parent_id=parent_id)
+        
+        # Update rate limits from API response
+        self.rate_limiter.update_from_api_response(result)
+        
         if result.get("success"):
             self.rate_limiter.record_comment()
             return result
@@ -867,41 +903,67 @@ class ToolExecutor:
         return result
     
     def _upvote_post(self, post_id: str) -> Dict[str, Any]:
+        if "..." in post_id or len(post_id) < 30:
+            return {
+                "success": False,
+                "error": f"Invalid post_id '{post_id}'. Use the FULL UUID, not abbreviated."
+            }
         return self.client.upvote_post(post_id)
     
     def _downvote_post(self, post_id: str) -> Dict[str, Any]:
+        if "..." in post_id or len(post_id) < 30:
+            return {
+                "success": False,
+                "error": f"Invalid post_id '{post_id}'. Use the FULL UUID, not abbreviated."
+            }
         return self.client.downvote_post(post_id)
     
     def _search_posts(self, query: str, limit: int = 20, type: str = "all") -> Dict[str, Any]:
-        result = self.client.search(query, search_type=type, limit=limit)
-        if result.get("success"):
-            results = result.get("results", [])
-            formatted = []
-            for item in results[:limit]:
-                if item.get("type") == "post":
-                    formatted.append({
-                        "id": item.get("id"),
-                        "type": "post",
-                        "post_id": item.get("post_id") or item.get("id"),
-                        "title": item.get("title"),
-                        "content": item.get("content", "")[:200],
-                        "author": (item.get("author") or {}).get("name"),
-                        "submolt": (item.get("submolt") or {}).get("name") if isinstance(item.get("submolt"), dict) else item.get("submolt"),
-                        "similarity": item.get("similarity")
-                    })
-                elif item.get("type") == "comment":
-                    post = item.get("post") or {}
-                    formatted.append({
-                        "id": item.get("id"),
-                        "type": "comment",
-                        "post_id": item.get("post_id") or post.get("id"),
-                        "post_title": post.get("title"),
-                        "content": item.get("content", "")[:200],
-                        "author": (item.get("author") or {}).get("name"),
-                        "similarity": item.get("similarity")
-                    })
-            return {"success": True, "results": formatted, "count": len(formatted)}
-        return result
+        # Search can be slow/timeout - just return empty results instead of failing
+        try:
+            result = self.client.search(query, search_type=type, limit=limit)
+            if result.get("success"):
+                results = result.get("results", [])
+                formatted = []
+                for item in results[:limit]:
+                    try:
+                        if item.get("type") == "post":
+                            author = item.get("author") or {}
+                            submolt = item.get("submolt")
+                            formatted.append({
+                                "id": item.get("id"),
+                                "type": "post",
+                                "post_id": item.get("post_id") or item.get("id"),
+                                "title": item.get("title", ""),
+                                "content": (item.get("content") or "")[:200],
+                                "author": author.get("name") if isinstance(author, dict) else str(author),
+                                "submolt": submolt.get("name") if isinstance(submolt, dict) else str(submolt) if submolt else None,
+                                "similarity": item.get("similarity")
+                            })
+                        elif item.get("type") == "comment":
+                            post = item.get("post") or {}
+                            author = item.get("author") or {}
+                            formatted.append({
+                                "id": item.get("id"),
+                                "type": "comment",
+                                "post_id": item.get("post_id") or post.get("id"),
+                                "post_title": post.get("title", ""),
+                                "content": (item.get("content") or "")[:200],
+                                "author": author.get("name") if isinstance(author, dict) else str(author),
+                                "similarity": item.get("similarity")
+                            })
+                    except Exception as e:
+                        logger.error(f"[SEARCH ERROR] Failed to parse result item: {e}")
+                        continue
+                return {"success": True, "results": formatted, "count": len(formatted)}
+            else:
+                logger.warning(f"[SEARCH] Query '{query}' returned no results or failed: {result.get('error', 'Unknown')}")
+                # Return empty results instead of failing
+                return {"success": True, "results": [], "count": 0, "note": "Search returned no results"}
+        except Exception as e:
+            logger.error(f"[SEARCH ERROR] Exception during search: {e}")
+            # Return empty results instead of failing
+            return {"success": True, "results": [], "count": 0, "note": f"Search failed: {str(e)}"}
 
     def _get_posts(self, sort: str = "hot", limit: int = 25, submolt: Optional[str] = None) -> Dict[str, Any]:
         result = self.client.get_posts(sort=sort, limit=limit, submolt=submolt)
@@ -922,9 +984,22 @@ class ToolExecutor:
         return result
     
     def _get_comments(self, post_id: str, sort: str = "top") -> Dict[str, Any]:
-        return self.client.get_comments(post_id, sort)
-
+        if "..." in post_id or len(post_id) < 30:
+            return {
+                "success": False,
+                "error": f"Invalid post_id '{post_id}'. Use the FULL UUID, not abbreviated."
+            }
+        result = self.client.get_comments(post_id, sort=sort)
+        if result.get("success"):
+            return result
+        return result
+    
     def _upvote_comment(self, comment_id: str) -> Dict[str, Any]:
+        if "..." in comment_id or len(comment_id) < 30:
+            return {
+                "success": False,
+                "error": f"Invalid comment_id '{comment_id}'. Use the FULL UUID, not abbreviated."
+            }
         return self.client.upvote_comment(comment_id)
     
     def _follow_agent(self, agent_name: str) -> Dict[str, Any]:
@@ -939,7 +1014,8 @@ class ToolExecutor:
     def _unsubscribe_submolt(self, submolt: str) -> Dict[str, Any]:
         return self.client.unsubscribe_submolt(submolt)
     
-    def _get_submolts(self) -> Dict[str, Any]:
+    def _get_submolts(self, limit: Optional[int] = None) -> Dict[str, Any]:
+        # Note: limit parameter is accepted but ignored as the API doesn't support it
         return self.client.get_submolts()
 
     def _get_submolt_info(self, submolt: str) -> Dict[str, Any]:

@@ -62,19 +62,39 @@ class AutonomousPeterGriffinAgent:
         logger.info("Peter has FULL AUTONOMY - he decides everything!")
         logger.info("=" * 60)
     
-    def check_status(self) -> bool:
-        """Verify agent is claimed and ready"""
-        try:
-            status = self.moltbook.get_status()
-            if status.get('status') == 'claimed':
-                logger.info("[STATUS] Agent is claimed and ready!")
-                return True
-            else:
-                logger.warning(f"[STATUS] Agent status: {status.get('status')}")
-                return False
-        except Exception as e:
-            logger.error(f"[STATUS ERROR] {e}")
-            return False
+    def check_status(self, max_retries: int = 3) -> bool:
+        """Verify agent is claimed and ready with retry logic"""
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"[STATUS CHECK] Attempt {attempt + 1}/{max_retries}...")
+                status = self.moltbook.get_status()
+                logger.info(f"[STATUS RAW] {json.dumps(status, indent=2, ensure_ascii=False)}")
+
+                # Moltbook APIs usually return: {"status": "claimed"}
+                # but some clients/wrappers may return: {"success": true, "data": {...}}
+                # or: {"success": true, "status": "claimed"}
+                resolved_status = None
+                if isinstance(status, dict):
+                    resolved_status = status.get('status')
+                    if resolved_status is None and isinstance(status.get('data'), dict):
+                        resolved_status = status['data'].get('status')
+
+                if resolved_status == 'claimed':
+                    logger.info("[STATUS] Agent is claimed and ready!")
+                    return True
+                else:
+                    logger.warning(f"[STATUS] Agent status: {resolved_status}")
+                    return False
+            except Exception as e:
+                logger.error(f"[STATUS ERROR] Attempt {attempt + 1}/{max_retries} failed: {e}")
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                    logger.info(f"[STATUS RETRY] Waiting {wait_time}s before retry...")
+                    time.sleep(wait_time)
+                else:
+                    logger.error(f"[STATUS FAILED] All {max_retries} attempts failed")
+                    return False
+        return False
     
     def build_context(self) -> str:
         """Build context for Peter to make decisions"""
@@ -177,6 +197,18 @@ class AutonomousPeterGriffinAgent:
     def autonomous_loop(self):
         """Main autonomous decision-making loop"""
         logger.info("[PETER] Starting autonomous operation! Hehehehe!")
+
+        try:
+            from dashboard import update_agent_status
+            update_agent_status(
+                running=True,
+                start_time=self.start_time,
+                total_actions=self.total_actions,
+                successful_actions=self.successful_actions,
+                last_activity=time.time()
+            )
+        except Exception:
+            pass
         
         if not self.check_status():
             logger.error("[PETER] Agent not claimed! Can't start.")

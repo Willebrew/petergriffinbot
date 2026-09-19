@@ -24,6 +24,7 @@ class RateLimitTracker:
         self._initialized = True
         self.filepath = filepath
         
+        # Default rate limits (will be updated from API responses)
         self.limits = {
             "comments_per_day": 50,
             "comment_cooldown_seconds": 20,
@@ -37,6 +38,49 @@ class RateLimitTracker:
         logger.info(f"[RATE LIMITS] Tracker initialized")
         logger.info(f"[RATE LIMITS] Comments today: {self.state['comments_today']}/{self.limits['comments_per_day']}")
         logger.info(f"[RATE LIMITS] Last post: {self._format_time_ago(self.state['last_post_time'])}")
+    
+    def update_from_api_response(self, response: Dict[str, Any]):
+        """Update rate limits dynamically from API response headers or body"""
+        updated = False
+        
+        # Check for rate limit info in response body
+        if isinstance(response, dict):
+            # Comment rate limits
+            if "retry_after_seconds" in response:
+                try:
+                    retry_seconds = int(response["retry_after_seconds"])
+                    if retry_seconds > 0 and retry_seconds != self.limits["comment_cooldown_seconds"]:
+                        self.limits["comment_cooldown_seconds"] = retry_seconds
+                        updated = True
+                        logger.info(f"[RATE LIMITS] Updated comment cooldown from API: {retry_seconds}s")
+                except (ValueError, TypeError):
+                    pass
+            
+            if "daily_remaining" in response:
+                try:
+                    daily_remaining = int(response["daily_remaining"])
+                    # Calculate total daily limit from remaining + used
+                    used = self.state["comments_today"]
+                    total_limit = used + daily_remaining
+                    if total_limit > 0 and total_limit != self.limits["comments_per_day"]:
+                        self.limits["comments_per_day"] = total_limit
+                        updated = True
+                        logger.info(f"[RATE LIMITS] Updated daily comment limit from API: {total_limit}")
+                except (ValueError, TypeError):
+                    pass
+            
+            # Post rate limits
+            if "retry_after_minutes" in response:
+                try:
+                    retry_minutes = int(response["retry_after_minutes"])
+                    if retry_minutes > 0 and retry_minutes != self.limits["post_cooldown_minutes"]:
+                        self.limits["post_cooldown_minutes"] = retry_minutes
+                        updated = True
+                        logger.info(f"[RATE LIMITS] Updated post cooldown from API: {retry_minutes}m")
+                except (ValueError, TypeError):
+                    pass
+        
+        return updated
     
     def _load_or_create(self):
         if os.path.exists(self.filepath):

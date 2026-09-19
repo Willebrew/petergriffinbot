@@ -89,7 +89,7 @@ def stream_activity():
         sub_queue = activity_logger.subscribe()
         
         try:
-            yield f"data: {json.dumps({'type': 'connected', 'message': 'Connected to activity stream'})}\n\n"
+            yield f"data: {json.dumps({'timestamp': time.time(), 'type': 'system', 'details': {'message': 'Connected to activity stream'}})}\n\n"
             
             while True:
                 try:
